@@ -4,7 +4,8 @@ using System.Collections;
 
 public class Player : MonoBehaviour
 {
-	public float jumpHeight = 4;
+	public float maxJumpHeight = 4;
+	public float minJumpHeight = 1;
 	public float timeToJumpApex =.4f;
 	public float wallSlideSpeedMax = 3;
 	public Vector2 wallJumpClimb;
@@ -16,23 +17,25 @@ public class Player : MonoBehaviour
 	float timeToWallUnstick;
 	float gravity;
 	float moveSpeed = 6;
-	float jumpVelocity;
+	float maxJumpVelocity;
+	float minJumpVelocity;
 	Vector3 velocity;
 	float velocityXSmoothing;
 
 	float accelerationTimeAirborne = .2f;
 	float accelerationTimeGrounded = .1f;
 
-    Controller2D controller;
-    void Start()
-    {
-        controller = GetComponent<Controller2D>();
-		gravity = -(2 * jumpHeight) / Mathf.Pow(timeToJumpApex, 2);
-		jumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
-		print("Gravity: " + gravity + " Jump Velocity: " + jumpVelocity);
+	Controller2D controller;
+	void Start()
+	{
+		controller = GetComponent<Controller2D>();
+		gravity = -(2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2);
+		maxJumpVelocity = Mathf.Abs(gravity) * timeToJumpApex;
+		minJumpVelocity = Mathf.Sqrt(2 * Mathf.Abs(gravity) * minJumpHeight);
+		print("Gravity: " + gravity + " Jump Velocity: " + maxJumpVelocity);
 
 
-    }
+	}
 
 	void Update()
 	{
@@ -74,10 +77,7 @@ public class Player : MonoBehaviour
 
 		}
 
-		if (controller.collisions.above || controller.collisions.below)
-		{
-			velocity.y = 0;
-		}
+		
 
 		
 
@@ -103,14 +103,29 @@ public class Player : MonoBehaviour
 			}
 			if(controller.collisions.below)
 			{
-				velocity.y = jumpVelocity;
+				velocity.y = maxJumpVelocity;
+			}
+
+
+			
+		}
+
+		if(Input.GetKeyUp(KeyCode.Space))
+		{
+			if(velocity.y > minJumpVelocity)
+			{
+				velocity.y = minJumpVelocity;
 			}
 			
 		}
 
 		
 		velocity.y += gravity * Time.deltaTime;
-		controller.Move(velocity * Time.deltaTime);
+		controller.Move(velocity * Time.deltaTime,input);
+		if (controller.collisions.above || controller.collisions.below)
+		{
+			velocity.y = 0;
+		}
 	}
 
 
